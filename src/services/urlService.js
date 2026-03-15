@@ -3,7 +3,7 @@ import pool from "../db/db.js";
 
 export async function createShortURL(original_url) {
     while(true) {
-        const shortID = shortid.generate();
+        const shortID = shortid.generate(6);
         try {
             await pool.query(
                 `insert into urls (short_id, original_url) values ($1, $2)`, 
@@ -15,4 +15,18 @@ export async function createShortURL(original_url) {
             throw err;
         }
     }
+}
+
+export async function getURLAndIncrementClicks(shortID) {
+    const res = await pool.query(
+        `update urls set click_count = click_count+1 where short_id = $1 returning original_url;`, [shortID]
+    )
+    return res.rows[0];
+}
+
+export async function getAnalytics(shortID) {
+    const res = await pool.query(
+        `select click_count, created_at from urls where short_id = $1`,[shortID]
+    )
+    return res.rows[0];
 }
