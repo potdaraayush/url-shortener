@@ -11,7 +11,8 @@ export async function handleCreateShortURL(req, res) {
         })
     }
 
-    const shortID = await createShortURL(url);
+    const userId = req.user.id;
+    const shortID = await createShortURL(url, userId);
 
     res.json({
         shortURL: `http://localhost:8000/${shortID}`
@@ -34,14 +35,15 @@ export async function handleRedirect(req, res) {
 
 export async function handleAnalytics(req, res) {
     const {id} = req.params;
-
-    const result = await getAnalytics(id);
-
+    const userId = req.user && req.user.id;
+    if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    const result = await getAnalytics(id, userId);
     if(!result) {
         return res.status(404).json({
-            error: "no analytics yet"
+            error: "not found"
         })
     }
-
     res.json(result);
 }
